@@ -11,12 +11,17 @@ import {
   Query,
   Req,
   Res,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Request, Response } from 'express';
 import { User } from './user.interface';
+import { AuthGuard } from 'src/guards/auth.guard';
+import { DateAdderInterceptor } from 'src/interceptors/date-adder.interceptor';
 
 @Controller('users')
+@UseGuards(AuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -63,7 +68,10 @@ export class UsersController {
     return this.usersService.getUserById(Number(id));
   }
   @Post()
-  createUser(@Body() user: User) {
+  @UseInterceptors(DateAdderInterceptor)
+  createUser(@Body() user: User, @Req() request: Request & { now: string }) {
+    console.log('dentro del endpoint:', request.now);
+
     return this.usersService.createUser(user);
   }
 
