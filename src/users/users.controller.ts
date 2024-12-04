@@ -6,6 +6,7 @@ import {
   Headers,
   HttpCode,
   Param,
+  ParseUUIDPipe,
   Post,
   Put,
   Query,
@@ -16,14 +17,18 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Request, Response } from 'express';
-import { User } from './user.interface';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { DateAdderInterceptor } from 'src/interceptors/date-adder.interceptor';
+import { UsersDbService } from './usersDb.service';
+import { CreateUserDto } from './dtos/CreateUser.dto';
 
 @Controller('users')
 @UseGuards(AuthGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly usersDbService: UsersDbService,
+  ) {}
 
   @Get()
   getUsers(@Query('name') name?: string) {
@@ -64,15 +69,18 @@ export class UsersController {
   }
 
   @Get(':id')
-  getUserById(@Param('id') id: string) {
-    return this.usersService.getUserById(Number(id));
+  getUserById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.usersDbService.getUserById(id);
   }
   @Post()
   @UseInterceptors(DateAdderInterceptor)
-  createUser(@Body() user: User, @Req() request: Request & { now: string }) {
+  createUser(
+    @Body() user: CreateUserDto,
+    @Req() request: Request & { now: string },
+  ) {
     console.log('dentro del endpoint:', request.now);
 
-    return this.usersService.createUser(user);
+    return this.usersDbService.saveUser({ ...user, createdAt: request.now });
   }
 
   @Put()
