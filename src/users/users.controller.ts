@@ -1,10 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Body,
   Controller,
   Delete,
   Get,
   Headers,
-  HttpCode,
+  HttpException,
+  HttpStatus,
+  NotFoundException,
   Param,
   ParseUUIDPipe,
   Post,
@@ -12,6 +15,7 @@ import {
   Query,
   Req,
   Res,
+  UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -21,21 +25,24 @@ import { AuthGuard } from 'src/guards/auth.guard';
 import { DateAdderInterceptor } from 'src/interceptors/date-adder.interceptor';
 import { UsersDbService } from './usersDb.service';
 import { CreateUserDto } from './dtos/CreateUser.dto';
+import { CloudinaryService } from './cloudinary.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
-@UseGuards(AuthGuard)
+//@UseGuards(AuthGuard)
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly usersDbService: UsersDbService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   @Get()
   getUsers(@Query('name') name?: string) {
     if (name) {
-      return this.usersService.getUserByName(name);
+      return this.usersDbService.getUserByName(name);
     }
-    return this.usersService.getUsers();
+    return this.usersDbService.getUsers();
   }
 
   @Get('profile')
@@ -46,15 +53,27 @@ export class UsersController {
     return 'Este endpoint retorna el perfil del usuario';
   }
 
-  @Get('profile/images')
-  getUserImages() {
-    return 'Este endpoint retorna las imagenes del usuario';
+  @Post('profile/images')
+  @UseInterceptors(FileInterceptor('image'))
+  //@UseGuards(AuthGuard)
+  getUserImages(@UploadedFile() file: Express.Multer.File) {
+    return this.cloudinaryService.uploadImage(file);
   }
 
-  @HttpCode(418)
+  //@HttpCode(418)
   @Get('coffee')
   getCoffee() {
-    return 'No se hacer cafe, soy una tetera';
+    try {
+      throw new Error();
+    } catch (e) {
+      throw new HttpException(
+        {
+          status: HttpStatus.I_AM_A_TEAPOT,
+          error: 'Envio de cafe fallido',
+        },
+        HttpStatus.I_AM_A_TEAPOT,
+      );
+    }
   }
 
   @Get('message')
@@ -69,8 +88,12 @@ export class UsersController {
   }
 
   @Get(':id')
-  getUserById(@Param('id', ParseUUIDPipe) id: string) {
-    return this.usersDbService.getUserById(id);
+  async getUserById(@Param('id', ParseUUIDPipe) id: string) {
+    const user = await this.usersDbService.getUserById(id);
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+    return user;
   }
   @Post()
   @UseInterceptors(DateAdderInterceptor)
