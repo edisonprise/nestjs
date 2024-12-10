@@ -3,12 +3,15 @@ import {
   Body,
   Controller,
   Delete,
+  FileTypeValidator,
   Get,
   Headers,
   HttpException,
   HttpStatus,
+  MaxFileSizeValidator,
   NotFoundException,
   Param,
+  ParseFilePipe,
   ParseUUIDPipe,
   Post,
   Put,
@@ -18,6 +21,7 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  UsePipes,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Request, Response } from 'express';
@@ -27,6 +31,7 @@ import { UsersDbService } from './usersDb.service';
 import { CreateUserDto } from './dtos/CreateUser.dto';
 import { CloudinaryService } from './cloudinary.service';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { MinSizeValidatorPipe } from 'src/pipes/min-size-validator-pipe';
 
 @Controller('users')
 //@UseGuards(AuthGuard)
@@ -55,8 +60,24 @@ export class UsersController {
 
   @Post('profile/images')
   @UseInterceptors(FileInterceptor('image'))
+  @UsePipes(MinSizeValidatorPipe)
   //@UseGuards(AuthGuard)
-  getUserImages(@UploadedFile() file: Express.Multer.File) {
+  getUserImages(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 100000,
+            message: 'El archivo debe ser menor a 100kb',
+          }),
+          new FileTypeValidator({
+            fileType: /(jpg|jpeg|png|webp)$/,
+          }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
     return this.cloudinaryService.uploadImage(file);
   }
 
