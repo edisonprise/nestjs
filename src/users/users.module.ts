@@ -8,6 +8,7 @@ import { User } from './users.entity';
 import { UsersDbService } from './usersDb.service';
 import { CloudinaryConfig } from 'src/config/cloudinary';
 import { CloudinaryService } from './cloudinary.service';
+import { AuthService } from './auth.service';
 
 /* const mockUserService = {
   getUsers: () => 'Esto es un servicio mock de usuarios',
@@ -25,6 +26,7 @@ import { CloudinaryService } from './cloudinary.service';
     UsersRepository,
     CloudinaryConfig,
     CloudinaryService,
+    AuthService,
     {
       provide: 'API_USERS',
       useFactory: async () => {

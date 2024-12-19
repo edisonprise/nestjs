@@ -20,4 +20,7 @@ export class UsersDbService {
   getUserById(id: string) {
     return this.usersRepository.findOne({ where: { id } });
   }
+  getUserByEmail(email: string) {
+    return this.usersRepository.findOne({ where: { email } });
+  }
 }

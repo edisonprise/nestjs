@@ -24,7 +24,7 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { Request, Response } from 'express';
+import { request, Request, Response } from 'express';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { DateAdderInterceptor } from 'src/interceptors/date-adder.interceptor';
 import { UsersDbService } from './usersDb.service';
@@ -32,6 +32,9 @@ import { CreateUserDto } from './dtos/CreateUser.dto';
 import { CloudinaryService } from './cloudinary.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MinSizeValidatorPipe } from 'src/pipes/min-size-validator-pipe';
+import { AuthService } from './auth.service';
+import { UserCredentialsDto } from './dtos/UserCredentialsDto';
+import { User } from './users.entity';
 
 @Controller('users')
 //@UseGuards(AuthGuard)
@@ -40,6 +43,7 @@ export class UsersController {
     private readonly usersService: UsersService,
     private readonly usersDbService: UsersDbService,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly authService: AuthService,
   ) {}
 
   @Get()
@@ -51,10 +55,16 @@ export class UsersController {
   }
 
   @Get('profile')
-  getUserProfile(@Headers('token') token?: string) {
-    if (token !== '1234') {
+  @UseGuards(AuthGuard)
+  getUserProfile(
+    /*@Headers('token') token?: string*/ @Req()
+    request: Request & { user: any },
+  ) {
+    /* if (token !== '1234') {
       return 'Sin acceso';
-    }
+    } */
+    console.log(request.user);
+
     return 'Este endpoint retorna el perfil del usuario';
   }
 
@@ -116,7 +126,7 @@ export class UsersController {
     }
     return user;
   }
-  @Post()
+  @Post('signup')
   @UseInterceptors(DateAdderInterceptor)
   createUser(
     @Body() user: CreateUserDto,
@@ -124,7 +134,12 @@ export class UsersController {
   ) {
     console.log('dentro del endpoint:', request.now);
 
-    return this.usersDbService.saveUser({ ...user, createdAt: request.now });
+    return this.authService.signUp({ ...user, createdAt: request.now });
+  }
+
+  @Post('signin')
+  async signin(@Body() user: UserCredentialsDto) {
+    return this.authService.signIn(user.email, user.password);
   }
 
   @Put()
