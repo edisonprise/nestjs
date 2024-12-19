@@ -35,6 +35,9 @@ import { MinSizeValidatorPipe } from 'src/pipes/min-size-validator-pipe';
 import { AuthService } from './auth.service';
 import { UserCredentialsDto } from './dtos/UserCredentialsDto';
 import { User } from './users.entity';
+import { Roles } from 'src/decorators/roles.decorator';
+import { Role } from 'src/roles.enum';
+import { RolesGuard } from 'src/guards/roles.guard';
 
 @Controller('users')
 //@UseGuards(AuthGuard)
@@ -118,6 +121,13 @@ export class UsersController {
     return 'Esta rute logueq el request';
   }
 
+  @Get('admin')
+  @Roles(Role.Admin)
+  @UseGuards(AuthGuard, RolesGuard)
+  getAdmin() {
+    return 'Ruta protegida';
+  }
+
   @Get(':id')
   async getUserById(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersDbService.getUserById(id);
@@ -134,7 +144,10 @@ export class UsersController {
   ) {
     console.log('dentro del endpoint:', request.now);
 
-    return this.authService.signUp({ ...user, createdAt: request.now });
+    return this.authService.signUp({
+      ...user,
+      createdAt: request.now,
+    });
   }
 
   @Post('signin')
