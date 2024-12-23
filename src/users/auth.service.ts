@@ -3,7 +3,7 @@ import { UsersDbService } from './usersDb.service';
 import { User } from './users.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { Role } from 'src/roles.enum';
+import { Role } from '../roles.enum';
 
 @Injectable()
 export class AuthService {
@@ -15,14 +15,13 @@ export class AuthService {
   async signUp(user: Omit<User, 'id'>) {
     const dbUser = await this.usersService.getUserByEmail(user.email);
     if (dbUser) {
-      throw new BadRequestException('Email already exist');
+      throw new BadRequestException('Email already in use');
     }
     const hashedPassword = await bcrypt.hash(user.password, 10);
     if (!hashedPassword) {
       throw new BadRequestException('Password could not be hashed');
     }
-    this.usersService.saveUser({ ...user, password: hashedPassword });
-    return { success: 'User created sucesfully!' };
+    return this.usersService.saveUser({ ...user, password: hashedPassword });
   }
 
   async signIn(email: string, password: string) {

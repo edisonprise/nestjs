@@ -9,6 +9,7 @@ import { UsersDbService } from './usersDb.service';
 import { CloudinaryConfig } from 'src/config/cloudinary';
 import { CloudinaryService } from './cloudinary.service';
 import { AuthService } from './auth.service';
+import { requiresAuth } from 'express-openid-connect';
 
 /* const mockUserService = {
   getUsers: () => 'Esto es un servicio mock de usuarios',
@@ -48,5 +49,6 @@ import { AuthService } from './auth.service';
 export class UsersModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(LoggerMiddleware).forRoutes('users');
+    consumer.apply(requiresAuth()).forRoutes('users/auth0/protected');
   }
 }

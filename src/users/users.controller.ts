@@ -128,6 +128,11 @@ export class UsersController {
     return 'Ruta protegida';
   }
 
+  @Get('auth0/protected')
+  getAuth0Protected(@Req() req: Request) {
+    console.log(req.oidc.accessToken);
+    return JSON.stringify(req.oidc.user);
+  }
   @Get(':id')
   async getUserById(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersDbService.getUserById(id);

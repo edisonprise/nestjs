@@ -15,7 +15,7 @@ export class UsersDbService {
     return this.usersRepository.findOne({ where: { name } });
   }
   saveUser(user: Omit<User, 'id'>) {
-    this.usersRepository.save(user);
+    return this.usersRepository.save(user);
   }
   getUserById(id: string) {
     return this.usersRepository.findOne({ where: { id } });
