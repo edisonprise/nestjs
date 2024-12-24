@@ -15,10 +15,46 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+  it('Get /users/ Returns an array of users with an OK status code', async () => {
+    const req = await request(app.getHttpServer()).get('/users');
+    console.log(req.body);
+
+    expect(req.status).toBe(200);
+    expect(req.body).toBeInstanceOf(Array);
+  });
+
+  it('Get /users/:id Returns a user with an OK status code', async () => {
+    const req = await request(app.getHttpServer()).get('/users/1');
+    console.log(req.body);
+
+    expect(req.status).toBe(200);
+    expect(req.body).toBeInstanceOf(Object);
+  });
+
+  it('Get /users/:id throws a NotFoundException if the user does not exist with a message Usuario no encontrado', async () => {
+    const req = await request(app.getHttpServer()).get('/users/1');
+    console.log(req.body);
+
+    expect(req.status).toBe(404);
+    expect(req.body.message).toBe('Usuario no encontrado');
+  });
+
+  it('Get /users/:id throws an error if the id is not a UUID', async () => {
+    const req = await request(app.getHttpServer()).get('/users/not-a-uuid');
+    console.log(req.body);
+
+    expect(req.status).toBe(400);
+    expect(req.body.message).toBeInstanceOf(Object);
+  });
+
+  it('Post /users/signup Creates a user with an OK status code', async () => {
+    const req = await request(app.getHttpServer()).post('/users/signup').send({
+      name: 'Test User',
+      email: 'test@test.com',
+      password: 'password',
+    });
+    console.log(req.body);
+    expect(req.status).toBe(201);
+    expect(req.body).toBeInstanceOf(Object);
   });
 });
