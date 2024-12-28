@@ -24,7 +24,7 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { request, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthGuard } from '../guards/auth.guard';
 import { DateAdderInterceptor } from '../interceptors/date-adder.interceptor';
 import { UsersDbService } from './usersDb.service';
@@ -38,7 +38,8 @@ import { User } from './users.entity';
 import { Roles } from '../decorators/roles.decorator';
 import { Role } from '../roles.enum';
 import { RolesGuard } from '../guards/roles.guard';
-
+import { ApiTags } from '@nestjs/swagger';
+@ApiTags('Users')
 @Controller('users')
 //@UseGuards(AuthGuard)
 export class UsersController {
