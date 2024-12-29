@@ -35,6 +35,7 @@ async function bootstrap() {
       `Esta es una API construida con Nest para ser empleada en las demos del modulo 4 de la especialidad Backend de la carrera Full Stack Developer de Henry.`,
     )
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
